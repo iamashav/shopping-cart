@@ -105,7 +105,7 @@ export function ShopFilters({ query, categories }: { query: ShopQuery; categorie
             {category.name}
           </Chip>
         ))}
-        <span className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
+        <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden="true" />
         {(Object.entries(ROAST_RANGES) as [Roast, (typeof ROAST_RANGES)[Roast]][]).map(
           ([roast, { label }]) => (
             <Chip
