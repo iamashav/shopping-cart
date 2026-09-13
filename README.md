@@ -33,12 +33,13 @@ To receive Stripe webhooks locally, run `stripe listen --forward-to localhost:30
 
 ## Scripts
 
-| Command             | Description                            |
-| ------------------- | -------------------------------------- |
-| `npm run dev`       | Start the dev server                   |
-| `npm run build`     | Production build                       |
-| `npm run lint`      | ESLint                                 |
-| `npm run typecheck` | Generate route types and run `tsc`     |
-| `npm test`          | Unit tests (Vitest)                    |
-| `npm run format`    | Format with Prettier                   |
-| `npm run db:seed`   | Seed Firestore with the sample catalog |
+| Command                     | Description                                                            |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`               | Start the dev server                                                   |
+| `npm run build`             | Production build                                                       |
+| `npm run lint`              | ESLint                                                                 |
+| `npm run typecheck`         | Generate route types and run `tsc`                                     |
+| `npm test`                  | Unit tests (Vitest)                                                    |
+| `npm run check:server-deps` | Load server SDKs with `require(esm)` disabled, as on Netlify functions |
+| `npm run format`            | Format with Prettier                                                   |
+| `npm run db:seed`           | Seed Firestore with the sample catalog                                 |
