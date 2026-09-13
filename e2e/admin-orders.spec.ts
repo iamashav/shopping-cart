@@ -122,7 +122,8 @@ test("cancelling refunds the payment in Stripe and returns the stock", async ({ 
   await expect(page.getByText(`${order.reference} cancelled and refunded.`)).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByText("Cancelled and refunded")).toBeVisible();
+  // Exact: the success toast also contains "cancelled and refunded".
+  await expect(page.getByText("Cancelled and refunded", { exact: true })).toBeVisible();
 
   const stored = (await testDb().collection("orders").doc(order.id).get()).data();
   expect(stored?.status).toBe("cancelled");
