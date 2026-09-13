@@ -14,11 +14,15 @@ export type OrderSummary = {
   shipTo: string | null;
 };
 
+export type LookupValues = { reference: string; email: string };
+
+// The submitted values are returned so the form can show them again: React resets forms after a
+// Server Action runs, which would otherwise wipe what the customer typed.
 export type LookupState =
   | { status: "idle" }
-  | { status: "invalid"; message: string }
-  | { status: "not-found" }
-  | { status: "found"; order: OrderSummary };
+  | { status: "invalid"; message: string; values: LookupValues }
+  | { status: "not-found"; values: LookupValues }
+  | { status: "found"; order: OrderSummary; values: LookupValues };
 
 const lookupSchema = z.object({
   reference: z
@@ -33,19 +37,25 @@ export async function lookupOrder(
   _previous: LookupState,
   formData: FormData,
 ): Promise<LookupState> {
-  const input = lookupSchema.safeParse({
-    reference: formData.get("reference"),
-    email: formData.get("email"),
-  });
+  const values: LookupValues = {
+    reference: String(formData.get("reference") ?? "").slice(0, 50),
+    email: String(formData.get("email") ?? "").slice(0, 320),
+  };
+  const input = lookupSchema.safeParse(values);
   if (!input.success) {
-    return { status: "invalid", message: input.error.issues[0]?.message ?? "Check your details." };
+    return {
+      status: "invalid",
+      message: input.error.issues[0]?.message ?? "Check your details.",
+      values,
+    };
   }
 
   const order = await findOrderByReference(input.data.reference, input.data.email);
-  if (!order) return { status: "not-found" };
+  if (!order) return { status: "not-found", values };
 
   return {
     status: "found",
+    values,
     order: {
       reference: order.reference,
       status: order.status,

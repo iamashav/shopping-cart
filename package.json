@@ -10,9 +10,11 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "db:seed": "node --env-file-if-exists=.env.local --import tsx scripts/seed.ts",
     "test": "vitest run",
-    "check:server-deps": "node --no-experimental-require-module scripts/check-server-deps.cjs"
+    "check:server-deps": "node --no-experimental-require-module scripts/check-server-deps.cjs",
+    "e2e:run": "node scripts/require-emulator.cjs && npm run db:seed && next build && playwright test",
+    "e2e": "npx --yes firebase-tools@15.30.0 emulators:exec --project demo-bloom --only firestore \"npm run e2e:run\""
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -33,6 +35,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24.13.4",
     "@types/react": "^19",

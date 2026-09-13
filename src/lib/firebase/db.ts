@@ -1,6 +1,8 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
+export const EMULATOR_PROJECT_ID = "demo-bloom";
+
 function requireEnv(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`Missing environment variable ${name}`);
@@ -8,6 +10,12 @@ function requireEnv(name: string): string {
 }
 
 function createApp() {
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
+    // A "demo-" project id can only ever talk to emulators, so tests and CI can never read or
+    // write the real project even if production credentials are present in .env.local.
+    return initializeApp({ projectId: EMULATOR_PROJECT_ID });
+  }
+
   return initializeApp({
     credential: cert({
       projectId: requireEnv("FIREBASE_PROJECT_ID"),
