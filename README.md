@@ -13,7 +13,8 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 - **Cloud Firestore** via the Firebase Admin SDK, accessed only from server code
 - **Zod** for validating data read from Firestore
 - **Zustand** for the cart, persisted to localStorage
-- **Vitest** for unit tests
+- **Vitest** for unit tests and **Playwright** for end-to-end tests against the Firestore emulator
+- **GitHub Actions** CI on every pull request
 - **Stripe Checkout** (test mode) with server-side re-pricing, and a signed webhook that records orders and decrements stock in a Firestore transaction
 - **Firebase Auth** (Google sign-in) for the admin area, with server-verified session cookies and an email allowlist
 - **Netlify** for hosting
@@ -33,16 +34,17 @@ To receive Stripe webhooks locally, run `stripe listen --forward-to localhost:30
 
 ## Scripts
 
-| Command                     | Description                                                            |
-| --------------------------- | ---------------------------------------------------------------------- |
-| `npm run dev`               | Start the dev server                                                   |
-| `npm run build`             | Production build                                                       |
-| `npm run lint`              | ESLint                                                                 |
-| `npm run typecheck`         | Generate route types and run `tsc`                                     |
-| `npm test`                  | Unit tests (Vitest)                                                    |
-| `npm run check:server-deps` | Load server SDKs with `require(esm)` disabled, as on Netlify functions |
-| `npm run format`            | Format with Prettier                                                   |
-| `npm run db:seed`           | Seed Firestore with the sample catalog                                 |
+| Command                     | Description                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `npm run dev`               | Start the dev server                                                            |
+| `npm run build`             | Production build                                                                |
+| `npm run lint`              | ESLint                                                                          |
+| `npm run typecheck`         | Generate route types and run `tsc`                                              |
+| `npm test`                  | Unit tests (Vitest)                                                             |
+| `npm run e2e`               | Start the Firestore emulator, seed it, build and run Playwright (needs Java 21) |
+| `npm run check:server-deps` | Load server SDKs with `require(esm)` disabled, as on Netlify functions          |
+| `npm run format`            | Format with Prettier                                                            |
+| `npm run db:seed`           | Seed Firestore with the sample catalog                                          |
 
 ## Deployment notes
 

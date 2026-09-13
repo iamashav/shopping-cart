@@ -18,6 +18,8 @@ export function OrderLookupForm({ defaultReference = "" }: { defaultReference?: 
   const [state, action, isPending] = useActionState<LookupState, FormData>(lookupOrder, {
     status: "idle",
   });
+  const values =
+    state.status === "idle" ? { reference: defaultReference, email: "" } : state.values;
 
   return (
     <div className="space-y-6">
@@ -27,7 +29,7 @@ export function OrderLookupForm({ defaultReference = "" }: { defaultReference?: 
           <input
             name="reference"
             required
-            defaultValue={defaultReference}
+            defaultValue={values.reference}
             placeholder="BLM-1A2B3C4D"
             autoComplete="off"
             className={`${inputClass} font-mono uppercase`}
@@ -35,7 +37,14 @@ export function OrderLookupForm({ defaultReference = "" }: { defaultReference?: 
         </label>
         <label className="block text-sm font-medium">
           Email used at checkout
-          <input name="email" type="email" required autoComplete="email" className={inputClass} />
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            defaultValue={values.email}
+            className={inputClass}
+          />
         </label>
         <Button type="submit" disabled={isPending} className="h-10 w-full">
           {isPending ? "Looking up…" : "Find my order"}
