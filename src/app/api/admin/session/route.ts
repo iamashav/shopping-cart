@@ -6,7 +6,7 @@ import {
   createAdminSession,
   getAdmin,
 } from "@/lib/auth/session";
-import { adminAuth } from "@/lib/firebase/admin";
+import { adminAuth } from "@/lib/firebase/auth";
 
 const bodySchema = z.object({ idToken: z.string().min(1).max(5000) });
 
