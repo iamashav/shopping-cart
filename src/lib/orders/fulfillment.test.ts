@@ -29,6 +29,7 @@ describe("planFulfillment", () => {
       products,
     );
     expect(items.every((item) => !item.oversold)).toBe(true);
+    expect(items.map((item) => item.stockTaken)).toEqual([3, 2]);
     expect(updatedVariants.get("night-owl")?.map((variant) => variant.stock)).toEqual([27, 0]);
     expect(product.variants.map((variant) => variant.stock)).toEqual([30, 2]);
   });
@@ -36,6 +37,7 @@ describe("planFulfillment", () => {
   it("flags oversold lines and never goes below zero", () => {
     const { items, updatedVariants } = planFulfillment([line("1kg-filter", 5)], products);
     expect(items[0].oversold).toBe(true);
+    expect(items[0].stockTaken).toBe(2);
     expect(updatedVariants.get("night-owl")?.[1].stock).toBe(0);
   });
 
@@ -46,6 +48,7 @@ describe("planFulfillment", () => {
     );
     expect(items).toHaveLength(1);
     expect(items[0].oversold).toBe(true);
+    expect(items[0].stockTaken).toBe(0);
     expect(updatedVariants.size).toBe(0);
   });
 });
