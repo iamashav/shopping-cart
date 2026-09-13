@@ -55,11 +55,9 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
   const formKey = state.status === "idle" ? "idle" : `${state.status}-${state.at}`;
   const variantShapes = product?.variants ?? ALL_VARIANT_SHAPES;
 
-  const field = (name: string) => ({
-    name,
+  const field = (name: string, hint?: boolean) => ({
+    ...controlProps(name, errors, hint),
     defaultValue: values[name] ?? "",
-    "aria-invalid": errors[name] ? true : undefined,
-    "aria-describedby": errors[name] ? `${name}-error` : undefined,
   });
 
   return (
@@ -87,10 +85,11 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
         {isCreate ? (
           <NameAndSlugFields values={values} errors={errors} />
         ) : (
-          <TextField label="Name" error={errors.name} {...field("name")} />
+          <Field name="name" label="Name" error={errors.name}>
+            <input {...field("name")} className={cn(inputClass, "h-10")} />
+          </Field>
         )}
-        <label className="block text-sm font-medium">
-          Category
+        <Field name="categorySlug" label="Category" error={errors.categorySlug}>
           <select {...field("categorySlug")} className={cn(inputClass, "h-10")}>
             {categories.map((category) => (
               <option key={category.slug} value={category.slug}>
@@ -98,13 +97,17 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
               </option>
             ))}
           </select>
-          <FieldError id="categorySlug-error" message={errors.categorySlug} />
-        </label>
-        <TextField label="Origin" error={errors.origin} {...field("origin")} />
-        <TextField label="Region" error={errors.region} {...field("region")} />
-        <TextField label="Process" error={errors.process} {...field("process")} />
-        <label className="block text-sm font-medium">
-          Roast level
+        </Field>
+        <Field name="origin" label="Origin" error={errors.origin}>
+          <input {...field("origin")} className={cn(inputClass, "h-10")} />
+        </Field>
+        <Field name="region" label="Region" error={errors.region}>
+          <input {...field("region")} className={cn(inputClass, "h-10")} />
+        </Field>
+        <Field name="process" label="Process" error={errors.process}>
+          <input {...field("process")} className={cn(inputClass, "h-10")} />
+        </Field>
+        <Field name="roastLevel" label="Roast level" error={errors.roastLevel}>
           <select {...field("roastLevel")} className={cn(inputClass, "h-10")}>
             {ROAST_LABELS.map((label, index) => (
               <option key={label} value={index + 1}>
@@ -112,28 +115,31 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
               </option>
             ))}
           </select>
-        </label>
-        <TextField
+        </Field>
+        <Field
+          name="tastingNotes"
           label="Tasting notes"
           hint="Comma-separated, up to six"
           error={errors.tastingNotes}
           className="sm:col-span-2"
-          {...field("tastingNotes")}
-        />
-        <label className="block text-sm font-medium sm:col-span-2">
-          Description
+        >
+          <input {...field("tastingNotes", true)} className={cn(inputClass, "h-10")} />
+        </Field>
+        <Field
+          name="description"
+          label="Description"
+          error={errors.description}
+          className="sm:col-span-2"
+        >
           <textarea {...field("description")} rows={3} className={cn(inputClass, "py-2")} />
-          <FieldError id="description-error" message={errors.description} />
-        </label>
-        <label className="block text-sm font-medium">
-          Bag colour
+        </Field>
+        <Field name="bagColor" label="Bag colour" error={errors.bagColor}>
           <input
             type="color"
             {...field("bagColor")}
             className="mt-1 block h-10 w-20 cursor-pointer rounded-lg border bg-background p-1"
           />
-          <FieldError id="bagColor-error" message={errors.bagColor} />
-        </label>
+        </Field>
       </section>
 
       <section className="space-y-3 rounded-xl border bg-card p-6">
@@ -178,7 +184,7 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
                         className={cn(inputClass, "mt-0 h-9 w-28 tabular-nums")}
                       />
                       <FieldError
-                        id={`${priceField(variant.id)}-error`}
+                        id={`${controlId(priceField(variant.id))}-error`}
                         message={errors[priceField(variant.id)]}
                       />
                     </td>
@@ -192,7 +198,7 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
                         className={cn(inputClass, "mt-0 h-9 w-24 tabular-nums")}
                       />
                       <FieldError
-                        id={`${stockField(variant.id)}-error`}
+                        id={`${controlId(stockField(variant.id))}-error`}
                         message={errors[stockField(variant.id)]}
                       />
                     </td>
@@ -216,28 +222,57 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
   );
 }
 
-type TextFieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
+const controlId = (name: string) => `field-${name.replace(/[^a-z0-9-]/gi, "-")}`;
+
+// Labels point at their control with htmlFor instead of wrapping it, so a select's options or a
+// hint don't leak into the control's accessible name; hints and errors go in aria-describedby.
+function controlProps(name: string, errors: Record<string, string>, hint?: boolean) {
+  const id = controlId(name);
+  const describedBy = [hint && `${id}-hint`, errors[name] && `${id}-error`].filter(Boolean);
+  return {
+    id,
+    name,
+    "aria-invalid": errors[name] ? true : undefined,
+    "aria-describedby": describedBy.length > 0 ? describedBy.join(" ") : undefined,
+  };
+}
+
+function Field({
+  name,
+  label,
+  hint,
+  error,
+  className,
+  children,
+}: {
+  name: string;
   label: string;
   hint?: string;
   error?: string;
-  name: string;
-};
-
-function TextField({ label, hint, error, className, name, ...input }: TextFieldProps) {
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const id = controlId(name);
   return (
-    <label className={cn("block text-sm font-medium", className)}>
-      {label}
-      {hint && <span className="ml-2 font-normal text-muted-foreground">{hint}</span>}
-      <input name={name} {...input} className={cn(inputClass, "h-10")} />
-      <FieldError id={`${name}-error`} message={error} />
-    </label>
+    <div className={cn("text-sm", className)}>
+      <label htmlFor={id} className="font-medium">
+        {label}
+      </label>
+      {hint && (
+        <span id={`${id}-hint`} className="ml-2 text-muted-foreground">
+          {hint}
+        </span>
+      )}
+      {children}
+      <FieldError id={`${id}-error`} message={error} />
+    </div>
   );
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <span id={id} className="mt-1 block text-xs font-normal text-destructive">
+    <span id={id} className="mt-1 block text-xs text-destructive">
       {message}
     </span>
   );
@@ -254,19 +289,28 @@ function Checkbox({
   hint?: string;
   defaultChecked: boolean;
 }) {
+  const id = controlId(name);
   return (
-    <label className="flex items-start gap-3 text-sm">
+    <div className="flex items-start gap-3 text-sm">
       <input
+        id={id}
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
+        aria-describedby={hint ? `${id}-hint` : undefined}
         className="mt-0.5 size-4 accent-primary"
       />
-      <span>
-        <span className="font-medium">{label}</span>
-        {hint && <span className="block text-muted-foreground">{hint}</span>}
-      </span>
-    </label>
+      <div>
+        <label htmlFor={id} className="font-medium">
+          {label}
+        </label>
+        {hint && (
+          <span id={`${id}-hint`} className="block text-muted-foreground">
+            {hint}
+          </span>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -280,39 +324,33 @@ function NameAndSlugFields({
   const [name, setName] = useState(values.name ?? "");
   const [slug, setSlug] = useState(values.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(Boolean(values.slug));
+  const nameProps = controlProps("name", errors);
+  const slugProps = controlProps("slug", errors, true);
 
   return (
     <>
-      <label className="block text-sm font-medium">
-        Name
+      <Field name="name" label="Name" error={errors.name}>
         <input
-          name="name"
+          {...nameProps}
           value={name}
           onChange={(event) => {
             setName(event.target.value);
             if (!slugEdited) setSlug(slugify(event.target.value));
           }}
-          aria-invalid={errors.name ? true : undefined}
           className={cn(inputClass, "h-10")}
         />
-        <FieldError id="name-error" message={errors.name} />
-      </label>
-      <label className="block text-sm font-medium">
-        URL
-        <span className="ml-2 font-normal text-muted-foreground">/shop/{slug || "…"}</span>
+      </Field>
+      <Field name="slug" label="URL" hint={`/shop/${slug || "…"}`} error={errors.slug}>
         <input
-          name="slug"
+          {...slugProps}
           value={slug}
           onChange={(event) => {
             setSlugEdited(true);
             setSlug(event.target.value);
           }}
-          aria-invalid={errors.slug ? true : undefined}
-          aria-describedby={errors.slug ? "slug-error" : undefined}
           className={cn(inputClass, "h-10 font-mono")}
         />
-        <FieldError id="slug-error" message={errors.slug} />
-      </label>
+      </Field>
     </>
   );
 }
