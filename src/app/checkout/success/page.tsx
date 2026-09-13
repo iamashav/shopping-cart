@@ -6,6 +6,7 @@ import { CheckCircle2Icon } from "lucide-react";
 import { ClearCart } from "@/components/cart/clear-cart";
 import { buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/lib/catalog/pricing";
+import { orderReference } from "@/lib/orders/reference";
 import { getStripe } from "@/lib/stripe";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,14 @@ async function Confirmation({
           : "We've received your order."}{" "}
         Bloom is a demo store, so nothing will be shipped.
       </p>
+
+      <div className="mt-6 rounded-lg bg-muted px-4 py-3 text-sm">
+        <span className="text-muted-foreground">Order reference</span>
+        <p className="font-mono text-lg font-semibold">{orderReference(session.id)}</p>
+        <Link href="/orders" className="text-brand underline-offset-4 hover:underline">
+          Look up this order later
+        </Link>
+      </div>
 
       <ul className="mt-6 divide-y border-y text-sm">
         {session.line_items?.data.map((item) => {

@@ -1,4 +1,7 @@
+import Link from "next/link";
 import { BloomMark } from "@/components/brand/bloom-mark";
+
+const linkClass = "underline-offset-4 hover:text-foreground hover:underline";
 
 export function Footer() {
   return (
@@ -8,12 +11,14 @@ export function Footer() {
           <BloomMark className="size-5" />
           <span>Bloom is a fictional coffee brand. No real orders are shipped.</span>
         </div>
-        <a
-          href="https://github.com/iamashav/bloom-coffee"
-          className="underline-offset-4 hover:text-foreground hover:underline"
-        >
-          Source on GitHub
-        </a>
+        <div className="flex gap-4">
+          <Link href="/orders" className={linkClass}>
+            Find an order
+          </Link>
+          <a href="https://github.com/iamashav/bloom-coffee" className={linkClass}>
+            Source on GitHub
+          </a>
+        </div>
       </div>
     </footer>
   );
