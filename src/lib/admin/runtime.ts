@@ -10,5 +10,6 @@ export function getRuntimeInfo() {
     nodeOptionsDisableRequireModule: (process.env.NODE_OPTIONS ?? "").includes(
       "no-experimental-require-module",
     ),
+    launchFlagsDisableRequireModule: process.execArgv.includes("--no-experimental-require-module"),
   };
 }

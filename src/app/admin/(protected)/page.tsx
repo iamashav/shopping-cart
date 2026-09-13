@@ -115,6 +115,10 @@ function RuntimeInfo() {
       label: "NODE_OPTIONS disables require(esm)",
       value: runtime.nodeOptionsDisableRequireModule ? "yes" : "no",
     },
+    {
+      label: "Launch flags disable require(esm)",
+      value: runtime.launchFlagsDisableRequireModule ? "yes" : "no",
+    },
   ];
 
   return (
