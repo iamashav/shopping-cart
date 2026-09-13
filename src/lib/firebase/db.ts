@@ -1,4 +1,5 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
 function requireEnv(name: string): string {
@@ -22,3 +23,4 @@ function createApp() {
 const app = getApps()[0] ?? createApp();
 
 export const db = getFirestore(app);
+export const adminAuth = getAuth(app);
