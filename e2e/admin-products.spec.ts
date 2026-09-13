@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import type { Product } from "@/lib/catalog/schema";
 import { emulatorsRunning, signInAsAdmin, testDb } from "./emulator";
 
@@ -34,6 +34,8 @@ test("invalid input shows errors and keeps what was typed", async ({ page }) => 
   await page.getByRole("button", { name: "Save changes" }).click();
 
   await expect(page.getByText("Enter a price like 18.50.")).toBeVisible();
+  await expect(price).toHaveAttribute("aria-invalid", "true");
+  await expect(price).toHaveAccessibleDescription("Enter a price like 18.50.");
   await expect(price).toHaveValue("abc");
   await expect(page.getByLabel("Name")).toHaveValue("Sugarcane Decaf Special");
 
@@ -69,4 +71,53 @@ test("saving is blocked when an order changed stock in the meantime", async ({ p
   const stored = (await ref.get()).data() as Product;
   expect(stockOf(stored, "1kg-filter")).toBe(filterBefore);
   expect(stockOf(stored, "250g-whole-bean")).toBe(wholeBeanBefore - 1);
+});
+
+async function fillNewProduct(page: Page, name: string) {
+  await page.goto("/admin/products/new");
+  await expect(page.getByRole("heading", { name: "New product" })).toBeVisible();
+  await page.getByLabel("Name").fill(name);
+  await page.getByLabel("Category").selectOption("single-origin");
+  await page.getByLabel("Origin").fill("Peru");
+  await page.getByLabel("Region").fill("Cajamarca");
+  await page.getByLabel("Process").fill("Washed");
+  await page.getByLabel("Roast level").selectOption("1");
+  await page.getByLabel("Tasting notes").fill("Toffee, Fig");
+  await page.getByLabel("Description").fill("A test coffee created by the e2e suite.");
+  for (const grind of ["Whole bean", "Filter", "Espresso"]) {
+    await page.getByLabel(`Price for 250g ${grind}`).fill("16.50");
+    await page.getByLabel(`Price for 1kg ${grind}`).fill("52");
+    await page.getByLabel(`Stock for 250g ${grind}`).fill("7");
+  }
+}
+
+test("creating a product publishes it to the shop", async ({ page }, testInfo) => {
+  // Retries reuse the emulator, so give each attempt its own product.
+  const name = `E2E Harvest ${testInfo.retry}`;
+  const slug = `e2e-harvest-${testInfo.retry}`;
+
+  await page.goto("/admin/products");
+  await page.getByRole("link", { name: "New product" }).click();
+  await fillNewProduct(page, name);
+  await expect(page.getByLabel("URL")).toHaveValue(slug);
+  await page.getByRole("button", { name: "Create product" }).click();
+
+  await expect(page).toHaveURL(`/admin/products/${slug}`);
+  await expect(page.getByRole("heading", { name })).toBeVisible();
+
+  await page.goto(`/shop/${slug}`);
+  await expect(page.getByRole("heading", { name })).toBeVisible();
+  await expect(page.getByText("$16.50", { exact: true })).toBeVisible();
+  await expect(page.getByText("Only 7 left")).toBeVisible();
+});
+
+test("a product URL can't be taken twice", async ({ page }) => {
+  await fillNewProduct(page, "Night Owl");
+  await expect(page.getByLabel("URL")).toHaveValue("night-owl");
+  await page.getByRole("button", { name: "Create product" }).click();
+
+  await expect(page.getByText("A product with this URL already exists.")).toBeVisible();
+  await expect(page.getByLabel("Origin")).toHaveValue("Peru");
+  const stored = (await testDb().collection("products").doc("night-owl").get()).data();
+  expect(stored?.origin).toBe("Brazil & Sumatra");
 });

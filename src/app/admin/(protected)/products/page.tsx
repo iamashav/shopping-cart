@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 import { CoffeeBag } from "@/components/brand/coffee-bag";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { listAdminProducts } from "@/lib/admin/products";
 import { LOW_STOCK_THRESHOLD } from "@/lib/admin/dashboard";
 import { formatPrice, lowestPriceCents } from "@/lib/catalog/pricing";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Products" };
 
@@ -13,11 +16,17 @@ export default async function AdminProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-semibold">Products</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {products.length} products · edit details, prices, stock and visibility.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-semibold">Products</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {products.length} products · edit details, prices, stock and visibility.
+          </p>
+        </div>
+        <Link href="/admin/products/new" className={cn(buttonVariants(), "h-10 px-4")}>
+          <PlusIcon data-icon="inline-start" />
+          New product
+        </Link>
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card">

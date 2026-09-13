@@ -16,7 +16,10 @@ test("home page shows the brand and this week's roasts", async ({ page }) => {
 
 test("search, category filters and clearing them", async ({ page }) => {
   await page.goto("/shop");
-  await expect(page.getByText("10 coffees")).toBeVisible();
+  // Admin e2e tests may add products in parallel, so compare against the count seen at the start.
+  const resultCount = page.getByText(/^\d+ coffees$/);
+  await expect(resultCount).toBeVisible();
+  const initialCount = await resultCount.textContent();
   await expect(
     page.getByRole("link", { name: /Gayo Highlands/ }).getByText("Sold out"),
   ).toBeVisible();
@@ -33,7 +36,7 @@ test("search, category filters and clearing them", async ({ page }) => {
 
   await page.getByRole("link", { name: "Clear filters" }).click();
   await expect(page).toHaveURL("/shop");
-  await expect(page.getByText("10 coffees")).toBeVisible();
+  await expect(resultCount).toHaveText(initialCount!);
   await expect(search).toHaveValue("");
 });
 
