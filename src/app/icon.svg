@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#f8f4ec"/>
+  <g transform="translate(2.4 2.4) scale(0.85)">
+    <g><ellipse cx="16" cy="8.6" rx="3.5" ry="6" fill="#c06a3c"/><path d="M16 3.6c-1.1 2.8 1.1 6.2 0 9.6" fill="none" stroke="#f8f4ec" stroke-width="0.9" stroke-linecap="round"/></g>
+    <g transform="rotate(72 16 16)"><ellipse cx="16" cy="8.6" rx="3.5" ry="6" fill="#c06a3c"/><path d="M16 3.6c-1.1 2.8 1.1 6.2 0 9.6" fill="none" stroke="#f8f4ec" stroke-width="0.9" stroke-linecap="round"/></g>
+    <g transform="rotate(144 16 16)"><ellipse cx="16" cy="8.6" rx="3.5" ry="6" fill="#c06a3c"/><path d="M16 3.6c-1.1 2.8 1.1 6.2 0 9.6" fill="none" stroke="#f8f4ec" stroke-width="0.9" stroke-linecap="round"/></g>
+    <g transform="rotate(216 16 16)"><ellipse cx="16" cy="8.6" rx="3.5" ry="6" fill="#c06a3c"/><path d="M16 3.6c-1.1 2.8 1.1 6.2 0 9.6" fill="none" stroke="#f8f4ec" stroke-width="0.9" stroke-linecap="round"/></g>
+    <g transform="rotate(288 16 16)"><ellipse cx="16" cy="8.6" rx="3.5" ry="6" fill="#c06a3c"/><path d="M16 3.6c-1.1 2.8 1.1 6.2 0 9.6" fill="none" stroke="#f8f4ec" stroke-width="0.9" stroke-linecap="round"/></g>
+  </g>
+</svg>

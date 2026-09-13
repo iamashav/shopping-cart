@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
+import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -14,20 +15,29 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: {
-    default: "Shopping Cart",
-    template: "%s | Shopping Cart",
+    default: "Bloom Coffee Roasters",
+    template: "%s | Bloom",
   },
-  description: "A full-stack e-commerce demo built with Next.js, Postgres and Stripe.",
+  description: "Small-batch specialty coffee, roasted weekly and shipped fresh.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col">
         <Navbar />
         <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+        <Footer />
         <Toaster />
       </body>
     </html>
