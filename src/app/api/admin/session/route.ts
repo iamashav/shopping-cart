@@ -10,10 +10,14 @@ import { adminAuth } from "@/lib/firebase/auth";
 
 const bodySchema = z.object({ idToken: z.string().min(1).max(5000) });
 
-// Session changes must come from our own pages, not a form on another site.
+// Session changes must come from our own pages, not a form on another site. Compared against the
+// Host the browser used (as Next.js does for Server Actions) because behind Netlify's CDN
+// request.url does not carry the public hostname.
 function isSameOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
-  return origin !== null && origin === new URL(request.url).origin;
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (!origin || !host || !URL.canParse(origin)) return false;
+  return new URL(origin).host === host.split(",")[0].trim();
 }
 
 export async function POST(request: Request) {
