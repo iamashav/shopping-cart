@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:server-deps": "node --no-experimental-require-module scripts/check-server-deps.cjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

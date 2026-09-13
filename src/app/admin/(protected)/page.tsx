@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LOW_STOCK_THRESHOLD, getDashboard } from "@/lib/admin/dashboard";
+import { getRuntimeInfo } from "@/lib/admin/runtime";
 import { formatPrice } from "@/lib/catalog/pricing";
 import { GRIND_LABELS } from "@/lib/catalog/schema";
 
@@ -98,6 +99,35 @@ export default async function AdminDashboardPage() {
           </ul>
         )}
       </section>
+
+      <RuntimeInfo />
     </div>
+  );
+}
+
+function RuntimeInfo() {
+  const runtime = getRuntimeInfo();
+  const rows = [
+    { label: "Node", value: runtime.node },
+    { label: "require(esm)", value: runtime.requireModule ? "supported" : "not supported" },
+    { label: "Platform", value: runtime.platform },
+    {
+      label: "NODE_OPTIONS disables require(esm)",
+      value: runtime.nodeOptionsDisableRequireModule ? "yes" : "no",
+    },
+  ];
+
+  return (
+    <section>
+      <h2 className="text-xl font-semibold">Server runtime</h2>
+      <dl className="mt-3 grid gap-x-8 gap-y-2 rounded-xl border bg-card p-4 font-mono text-sm sm:grid-cols-2">
+        {rows.map(({ label, value }) => (
+          <div key={label} className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
