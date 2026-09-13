@@ -4,7 +4,7 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 
 **Live site:** https://bloomcoffee-shop.netlify.app
 
-> Work in progress. The catalog is live; cart, Stripe checkout, stock tracking and an admin area are being built.
+> Work in progress. Catalog, filters and cart are live; Stripe checkout, stock tracking and an admin area are being built.
 
 ## Tech stack
 
@@ -12,6 +12,8 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 - **Tailwind CSS v4** and **shadcn/ui**
 - **Cloud Firestore** via the Firebase Admin SDK, accessed only from server code
 - **Zod** for validating data read from Firestore
+- **Zustand** for the cart, persisted to localStorage
+- **Vitest** for unit tests
 - **Netlify** for hosting
 
 ## Getting started
@@ -33,5 +35,6 @@ npm run dev
 | `npm run build`     | Production build                       |
 | `npm run lint`      | ESLint                                 |
 | `npm run typecheck` | Generate route types and run `tsc`     |
+| `npm test`          | Unit tests (Vitest)                    |
 | `npm run format`    | Format with Prettier                   |
 | `npm run db:seed`   | Seed Firestore with the sample catalog |

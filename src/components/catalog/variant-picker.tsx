@@ -1,6 +1,12 @@
 "use client";
 
 import { useId, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { QuantityStepper } from "@/components/cart/quantity-stepper";
+import { Button } from "@/components/ui/button";
+import { MAX_QUANTITY_PER_LINE, lineKey, toCartLine } from "@/lib/cart/cart";
+import { useCart } from "@/lib/cart/store";
 import { formatPrice } from "@/lib/catalog/pricing";
 import { GRIND_LABELS, GRINDS, SIZES, type Product, type Variant } from "@/lib/catalog/schema";
 import { cn } from "@/lib/utils";
@@ -118,6 +124,51 @@ export function VariantPicker({ product }: { product: Product }) {
         isAvailable={(option) => (findVariant(product, size, option)?.stock ?? 0) > 0}
         onChange={setGrind}
       />
+
+      {selected && <AddToCart key={selected.id} product={product} variant={selected} />}
+    </div>
+  );
+}
+
+function AddToCart({ product, variant }: { product: Product; variant: Variant }) {
+  const router = useRouter();
+  const add = useCart((state) => state.add);
+  const inCart = useCart(
+    (state) => state.lines.find((line) => line.key === lineKey(product.slug, variant.id))?.quantity,
+  );
+  const [quantity, setQuantity] = useState(1);
+
+  const max = Math.min(variant.stock, MAX_QUANTITY_PER_LINE) - (inCart ?? 0);
+  const soldOut = variant.stock === 0;
+  const effectiveQuantity = Math.min(quantity, Math.max(max, 1));
+
+  function handleAdd() {
+    add(toCartLine(product, variant, effectiveQuantity));
+    setQuantity(1);
+    toast.success(`${product.name} added to your cart`, {
+      description: `${effectiveQuantity} × ${variant.size}, ${GRIND_LABELS[variant.grind].toLowerCase()}`,
+      action: { label: "View cart", onClick: () => router.push("/cart") },
+    });
+  }
+
+  return (
+    <div className="space-y-2 pt-1">
+      <div className="flex gap-3">
+        <QuantityStepper
+          value={effectiveQuantity}
+          max={Math.max(max, 1)}
+          onChange={setQuantity}
+          label="Quantity"
+        />
+        <Button onClick={handleAdd} disabled={soldOut || max < 1} className="h-10 flex-1 text-base">
+          {soldOut ? "Sold out" : "Add to cart"}
+        </Button>
+      </div>
+      {!soldOut && max < 1 && (
+        <p className="text-sm text-muted-foreground">
+          You already have the most we can sell of this option in your cart.
+        </p>
+      )}
     </div>
   );
 }
