@@ -4,10 +4,9 @@ import { notFound } from "next/navigation";
 import { ChevronLeftIcon } from "lucide-react";
 import { CoffeeBag } from "@/components/brand/coffee-bag";
 import { RoastLevel } from "@/components/catalog/roast-level";
+import { VariantPicker } from "@/components/catalog/variant-picker";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, isSoldOut, lowestPriceCents } from "@/lib/catalog/pricing";
 import { getProduct, getProducts } from "@/lib/catalog/queries";
-import { GRIND_LABELS, GRINDS, SIZES } from "@/lib/catalog/schema";
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -54,14 +53,7 @@ export default async function ProductPage({ params }: PageProps<"/shop/[slug]">)
 
         <div>
           <h1 className="text-4xl font-semibold md:text-5xl">{product.name}</h1>
-          <p className="mt-2 text-lg">from {formatPrice(lowestPriceCents(product))}</p>
-          {isSoldOut(product) && (
-            <Badge variant="secondary" className="mt-3">
-              Sold out
-            </Badge>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {product.tastingNotes.map((note) => (
               <Badge key={note} variant="outline">
                 {note}
@@ -69,7 +61,11 @@ export default async function ProductPage({ params }: PageProps<"/shop/[slug]">)
             ))}
           </div>
 
-          <p className="mt-6 text-muted-foreground">{product.description}</p>
+          <div className="mt-6">
+            <VariantPicker product={product} />
+          </div>
+
+          <p className="mt-8 text-muted-foreground">{product.description}</p>
 
           <dl className="mt-6 grid grid-cols-3 gap-4 border-y py-4 text-sm">
             {details.map(({ label, value }) => (
@@ -81,11 +77,6 @@ export default async function ProductPage({ params }: PageProps<"/shop/[slug]">)
           </dl>
 
           <RoastLevel level={product.roastLevel} className="mt-4" />
-
-          <p className="mt-6 text-sm text-muted-foreground">
-            Available in {SIZES.join(" and ")} bags ·{" "}
-            {GRINDS.map((grind) => GRIND_LABELS[grind].toLowerCase()).join(", ")}
-          </p>
         </div>
       </div>
     </article>
