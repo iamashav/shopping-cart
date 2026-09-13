@@ -43,3 +43,23 @@ To receive Stripe webhooks locally, run `stripe listen --forward-to localhost:30
 | `npm run check:server-deps` | Load server SDKs with `require(esm)` disabled, as on Netlify functions |
 | `npm run format`            | Format with Prettier                                                   |
 | `npm run db:seed`           | Seed Firestore with the sample catalog                                 |
+
+## Deployment notes
+
+### Why `jose` is pinned for `jwks-rsa`
+
+`package.json` contains `"overrides": { "jwks-rsa": { "jose": "^5.10.0" } }`.
+
+`firebase-admin/auth` depends on `jwks-rsa@4`, which calls `require("jose")`, and `jose@6` is ESM-only, so loading it needs Node's `require(esm)` support. Netlify functions run on AWS Lambda's `nodejs24.x` runtime (Node 24.19 at the time of writing), where `require(esm)` is **disabled by the runtime itself**, not through `NODE_OPTIONS`. Without the override, every function that imported Firebase Auth crashed on start. `jose@5` ships a CommonJS build and has the same API for the four functions `jwks-rsa` uses (`importJWK`, `exportSPKI`, `decodeJwt`, `decodeProtectedHeader`).
+
+- `npm run check:server-deps` loads the server SDKs with `require(esm)` disabled and fails if this regresses.
+- The admin dashboard's **Server runtime** section shows what the live functions support.
+- **Remove the override** once that section reports `require(esm)` as supported, then run `npm install` and `npm run check:server-deps` to confirm.
+
+Firebase Auth is also only imported by the admin session code (`src/lib/firebase/auth.ts`), so checkout, the Stripe webhook and the catalog never depend on it.
+
+### Netlify environment variables
+
+- Mark real secrets as secret: `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+- Don't mark public values as secret (`NEXT_PUBLIC_*`, `FIREBASE_PROJECT_ID`). They end up in the browser bundle, so Netlify's secret scan would fail the build.
+- `SECRETS_SCAN_OMIT_PATHS` in `netlify.toml` skips Turbopack's build cache, which records env values but is never deployed.
