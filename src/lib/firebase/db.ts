@@ -1,5 +1,4 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 
 function requireEnv(name: string): string {
@@ -20,7 +19,6 @@ function createApp() {
 }
 
 // Reuse the app across hot reloads and warm serverless invocations.
-const app = getApps()[0] ?? createApp();
+export const app = getApps()[0] ?? createApp();
 
 export const db = getFirestore(app);
-export const adminAuth = getAuth(app);

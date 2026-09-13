@@ -1,7 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { adminAuth } from "@/lib/firebase/admin";
+import { adminAuth } from "@/lib/firebase/auth";
 import { isAdminEmail, parseAdminEmails } from "./admin-emails";
 import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS } from "./cookie";
 
