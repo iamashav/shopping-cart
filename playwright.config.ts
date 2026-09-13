@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_ADMIN_EMAIL } from "./e2e/admin";
 
 const PORT = 3100;
 const isCI = Boolean(process.env.CI);
@@ -26,5 +27,6 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    env: { ADMIN_EMAILS: E2E_ADMIN_EMAIL },
   },
 });

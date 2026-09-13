@@ -14,7 +14,7 @@
     "test": "vitest run",
     "check:server-deps": "node --no-experimental-require-module scripts/check-server-deps.cjs",
     "e2e:run": "node scripts/require-emulator.cjs && npm run db:seed && next build && playwright test",
-    "e2e": "npx --yes firebase-tools@15.30.0 emulators:exec --project demo-bloom --only firestore \"npm run e2e:run\""
+    "e2e": "npx --yes firebase-tools@15.30.0 emulators:exec --project demo-bloom --only firestore,auth \"npm run e2e:run\""
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
