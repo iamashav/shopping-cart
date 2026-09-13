@@ -32,13 +32,15 @@ export function planFulfillment(
     const variant = variants?.find((candidate) => candidate.id === line.variantId);
 
     let oversold = true;
+    let stockTaken = 0;
     if (variants && variant) {
       oversold = variant.stock < line.quantity;
-      variant.stock = Math.max(0, variant.stock - line.quantity);
+      stockTaken = Math.min(variant.stock, line.quantity);
+      variant.stock -= stockTaken;
       updatedVariants.set(line.productSlug, variants);
     }
 
-    items.push({ ...line, oversold });
+    items.push({ ...line, oversold, stockTaken });
   }
 
   return { items, updatedVariants };

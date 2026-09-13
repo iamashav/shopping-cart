@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LOW_STOCK_THRESHOLD, getDashboard } from "@/lib/admin/dashboard";
 import { getRuntimeInfo } from "@/lib/admin/runtime";
 import { formatPrice } from "@/lib/catalog/pricing";
@@ -47,7 +48,14 @@ export default async function AdminDashboardPage() {
               <tbody className="divide-y">
                 {recentOrders.map((order) => (
                   <tr key={order.id}>
-                    <td className="px-4 py-3 font-mono">{order.reference}</td>
+                    <td className="px-4 py-3 font-mono">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-brand underline-offset-4 hover:underline"
+                      >
+                        {order.reference}
+                      </Link>
+                    </td>
                     <td className="px-4 py-3">
                       {order.createdAt.toLocaleString("en-US", {
                         dateStyle: "medium",
