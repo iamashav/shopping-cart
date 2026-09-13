@@ -62,7 +62,10 @@ test("saving is blocked when an order changed stock in the meantime", async ({ p
   await page.getByLabel("Stock for 1kg Filter").fill(String(filterBefore + 15));
   await page.getByRole("button", { name: "Save changes" }).click();
 
-  await expect(page.getByRole("alert")).toContainText("Stock changed since you opened this page");
+  // Next.js renders its own empty role="alert" route announcer, so match ours by its text.
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Stock changed since you opened this page" }),
+  ).toBeVisible();
   const stored = (await ref.get()).data() as Product;
   expect(stockOf(stored, "1kg-filter")).toBe(filterBefore);
   expect(stockOf(stored, "250g-whole-bean")).toBe(wholeBeanBefore - 1);
