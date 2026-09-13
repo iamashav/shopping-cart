@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { AdminNav } from "@/components/admin/admin-nav";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { requireAdmin } from "@/lib/auth/session";
 
@@ -20,7 +21,10 @@ async function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="text-xs font-medium tracking-widest text-brand uppercase">Admin</p>
           <p className="text-sm text-muted-foreground">Signed in as {admin.email}</p>
         </div>
-        <SignOutButton />
+        <div className="flex flex-wrap items-center gap-3">
+          <AdminNav />
+          <SignOutButton />
+        </div>
       </div>
       <div className="mt-8">{children}</div>
     </div>
