@@ -4,7 +4,7 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 
 **Live site:** https://bloomcoffee-shop.netlify.app
 
-> Work in progress. Catalog, filters and cart are live; Stripe checkout, stock tracking and an admin area are being built.
+> Work in progress. Catalog, filters, cart and Stripe checkout (test mode) are live; order records, stock tracking and an admin area are being built.
 
 ## Tech stack
 
@@ -14,6 +14,7 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 - **Zod** for validating data read from Firestore
 - **Zustand** for the cart, persisted to localStorage
 - **Vitest** for unit tests
+- **Stripe Checkout** (test mode) with server-side re-pricing
 - **Netlify** for hosting
 
 ## Getting started
@@ -22,7 +23,7 @@ Requires Node 24.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in Firebase service account values
+cp .env.example .env.local   # fill in Firebase and Stripe test keys
 npm run db:seed              # load sample categories and coffees
 npm run dev
 ```

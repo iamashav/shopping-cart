@@ -77,3 +77,27 @@ export function totalItems(lines: CartLine[]): number {
 export function subtotalCents(lines: CartLine[]): number {
   return lines.reduce((sum, line) => sum + line.priceCents * line.quantity, 0);
 }
+
+export type LineAdjustment = {
+  key: string;
+  quantity: number;
+  maxQuantity: number;
+  priceCents: number;
+};
+
+export function applyAdjustments(lines: CartLine[], adjustments: LineAdjustment[]): CartLine[] {
+  const byKey = new Map(adjustments.map((adjustment) => [adjustment.key, adjustment]));
+  return lines
+    .map((line) => {
+      const adjustment = byKey.get(line.key);
+      return adjustment
+        ? {
+            ...line,
+            quantity: adjustment.quantity,
+            maxQuantity: adjustment.maxQuantity,
+            priceCents: adjustment.priceCents || line.priceCents,
+          }
+        : line;
+    })
+    .filter((line) => line.quantity > 0);
+}
