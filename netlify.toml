@@ -4,3 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "24"
+  # Turbopack's build cache records env var values to know when to rebuild. It is kept only for
+  # the next build and never deployed, so scanning it flags secrets that visitors can't reach.
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache,.next/cache"
