@@ -2,7 +2,14 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { addLine, removeLine, setLineQuantity, type CartLine } from "./cart";
+import {
+  addLine,
+  applyAdjustments,
+  removeLine,
+  setLineQuantity,
+  type CartLine,
+  type LineAdjustment,
+} from "./cart";
 
 type CartState = {
   lines: CartLine[];
@@ -10,6 +17,7 @@ type CartState = {
   setQuantity: (key: string, quantity: number) => void;
   remove: (key: string) => void;
   clear: () => void;
+  adjust: (adjustments: LineAdjustment[]) => void;
 };
 
 export const useCart = create<CartState>()(
@@ -21,6 +29,8 @@ export const useCart = create<CartState>()(
         set((state) => ({ lines: setLineQuantity(state.lines, key, quantity) })),
       remove: (key) => set((state) => ({ lines: removeLine(state.lines, key) })),
       clear: () => set({ lines: [] }),
+      adjust: (adjustments) =>
+        set((state) => ({ lines: applyAdjustments(state.lines, adjustments) })),
     }),
     {
       name: "bloom-cart",

@@ -3,6 +3,7 @@ import { makeProduct, makeVariant } from "@/test/fixtures";
 import {
   MAX_QUANTITY_PER_LINE,
   addLine,
+  applyAdjustments,
   removeLine,
   setLineQuantity,
   subtotalCents,
@@ -83,5 +84,20 @@ describe("totals", () => {
     );
     expect(totalItems(lines)).toBe(3);
     expect(subtotalCents(lines)).toBe(2 * 1800 + 5800);
+  });
+});
+
+describe("applyAdjustments", () => {
+  it("removes unavailable lines and updates quantity, limit and price", () => {
+    const lines = addLine(
+      addLine([], toCartLine(product, small, 2)),
+      toCartLine(product, large, 4),
+    );
+    const adjusted = applyAdjustments(lines, [
+      { key: "test-coffee:250g-filter", quantity: 0, maxQuantity: 0, priceCents: 0 },
+      { key: "test-coffee:1kg-filter", quantity: 3, maxQuantity: 3, priceCents: 6000 },
+    ]);
+    expect(adjusted).toHaveLength(1);
+    expect(adjusted[0]).toMatchObject({ quantity: 3, maxQuantity: 3, priceCents: 6000 });
   });
 });

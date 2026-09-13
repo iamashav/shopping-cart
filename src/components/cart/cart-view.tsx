@@ -4,12 +4,14 @@ import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ShoppingBagIcon, Trash2Icon } from "lucide-react";
 import { CoffeeBag } from "@/components/brand/coffee-bag";
+import { CheckoutButton } from "@/components/cart/checkout-button";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { buttonVariants } from "@/components/ui/button";
 import { subtotalCents, totalItems, type CartLine } from "@/lib/cart/cart";
 import { useCart } from "@/lib/cart/store";
 import { formatPrice } from "@/lib/catalog/pricing";
 import { GRIND_LABELS } from "@/lib/catalog/schema";
+import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/checkout/pricing";
 import { cn } from "@/lib/utils";
 
 function useCartHydrated() {
@@ -28,6 +30,7 @@ export function CartView() {
   if (lines.length === 0) return <EmptyCart />;
 
   const count = totalItems(lines);
+  const subtotal = subtotalCents(lines);
 
   return (
     <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_22rem]">
@@ -44,15 +47,28 @@ export function CartView() {
             <dt className="text-muted-foreground">
               Subtotal ({count} {count === 1 ? "bag" : "bags"})
             </dt>
-            <dd className="font-medium tabular-nums">{formatPrice(subtotalCents(lines))}</dd>
+            <dd className="font-medium tabular-nums">{formatPrice(subtotal)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted-foreground">Shipping</dt>
-            <dd>Calculated at checkout</dd>
+            <dd>
+              {subtotal >= FREE_SHIPPING_THRESHOLD_CENTS ? "Free standard shipping" : "From $5.00"}
+            </dd>
           </div>
         </dl>
-        <p className="mt-6 rounded-lg bg-muted px-3 py-2 text-center text-sm text-muted-foreground">
-          Checkout is coming soon.
+        {subtotal < FREE_SHIPPING_THRESHOLD_CENTS && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            Add {formatPrice(FREE_SHIPPING_THRESHOLD_CENTS - subtotal)} more for free standard
+            shipping.
+          </p>
+        )}
+        <div className="mt-6">
+          <CheckoutButton />
+        </div>
+        <p className="mt-4 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
+          <span className="font-medium text-foreground">Demo store:</span> pay with test card{" "}
+          <span className="font-mono whitespace-nowrap">4242 4242 4242 4242</span>, any future date
+          and any CVC. No real orders are shipped.
         </p>
         <Link
           href="/shop"
