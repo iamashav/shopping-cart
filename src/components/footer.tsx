@@ -9,7 +9,7 @@ export function Footer() {
           <span>Bloom is a fictional coffee roaster, built as a portfolio project.</span>
         </div>
         <a
-          href="https://github.com/iamashav/shopping-cart"
+          href="https://github.com/iamashav/bloom-coffee"
           className="underline-offset-4 hover:text-foreground hover:underline"
         >
           Source on GitHub
