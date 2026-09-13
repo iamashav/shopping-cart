@@ -50,6 +50,13 @@ export async function startCheckout(input: unknown): Promise<CheckoutResult> {
     const origin = await siteOrigin();
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
+      branding_settings: {
+        display_name: "Bloom",
+        background_color: "#f8f4ec",
+        button_color: "#4a2f22",
+        font_family: "lora",
+        border_style: "rounded",
+      },
       line_items: lines.map(({ product, variant, quantity }) => ({
         quantity,
         price_data: {
