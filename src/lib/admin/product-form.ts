@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { productSchema, type Product } from "@/lib/catalog/schema";
+import { GRINDS, SIZES, productSchema, type Product, type Variant } from "@/lib/catalog/schema";
 
 export const MAX_STOCK = 9999;
 
@@ -90,16 +90,14 @@ function parseLoadedStock(raw: string | undefined): Record<string, number> | nul
   }
 }
 
-export type ParsedProductForm =
-  | { ok: true; product: Product; loadedStock: Record<string, number> }
-  | { ok: false; fieldErrors: FieldErrors };
+type VariantShape = Pick<Variant, "id" | "size" | "grind">;
 
-// Slug, sizes, grinds and variant ids come from the stored product, never from the form.
-export function parseProductForm(
-  values: FormValues,
-  current: Product,
-  categorySlugs: Set<string>,
-): ParsedProductForm {
+// Every product offers each size × grind; ids are derived so stock links and cart keys stay stable.
+export const ALL_VARIANT_SHAPES: VariantShape[] = SIZES.flatMap((size) =>
+  GRINDS.map((grind) => ({ id: `${size}-${grind}`, size, grind })),
+);
+
+function parseShared(values: FormValues, shapes: VariantShape[], categorySlugs: Set<string>) {
   const fieldErrors: FieldErrors = {};
 
   const details = detailsSchema.safeParse(values);
@@ -112,30 +110,102 @@ export function parseProductForm(
 
   if (!categorySlugs.has(values.categorySlug ?? "")) fieldErrors.categorySlug = "Pick a category.";
 
-  const variants = current.variants.map((variant) => {
-    const priceCents = parsePriceCents(values[priceField(variant.id)]);
-    const stock = parseStock(values[stockField(variant.id)]);
-    if (priceCents === null) fieldErrors[priceField(variant.id)] = "Enter a price like 18.50.";
-    if (stock === null) fieldErrors[stockField(variant.id)] = `Enter 0–${MAX_STOCK}.`;
-    return { ...variant, priceCents: priceCents ?? 0, stock: stock ?? 0 };
+  const variants = shapes.map((shape) => {
+    const priceCents = parsePriceCents(values[priceField(shape.id)]);
+    const stock = parseStock(values[stockField(shape.id)]);
+    if (priceCents === null) fieldErrors[priceField(shape.id)] = "Enter a price like 18.50.";
+    if (stock === null) fieldErrors[stockField(shape.id)] = `Enter 0–${MAX_STOCK}.`;
+    return { ...shape, priceCents: priceCents ?? 0, stock: stock ?? 0 };
   });
+
+  const fields = details.success
+    ? {
+        ...details.data,
+        categorySlug: values.categorySlug,
+        featured: values.featured === "on",
+        active: values.active === "on",
+        variants,
+      }
+    : null;
+  return { fieldErrors, fields };
+}
+
+export type ParsedProductForm =
+  | { ok: true; product: Product; loadedStock: Record<string, number> }
+  | { ok: false; fieldErrors: FieldErrors };
+
+// Slug, sizes, grinds and variant ids come from the stored product, never from the form.
+export function parseProductForm(
+  values: FormValues,
+  current: Product,
+  categorySlugs: Set<string>,
+): ParsedProductForm {
+  const { fieldErrors, fields } = parseShared(values, current.variants, categorySlugs);
 
   const loadedStock = parseLoadedStock(values[LOADED_STOCK_FIELD]);
   if (!loadedStock) fieldErrors.form = "The form is out of date. Reload the page and try again.";
 
-  if (!details.success || Object.keys(fieldErrors).length > 0 || !loadedStock) {
+  if (!fields || !loadedStock || Object.keys(fieldErrors).length > 0) {
     return { ok: false, fieldErrors };
   }
+  return { ok: true, product: productSchema.parse({ ...current, ...fields }), loadedStock };
+}
 
-  const product = productSchema.parse({
-    ...current,
-    ...details.data,
-    categorySlug: values.categorySlug,
-    featured: values.featured === "on",
-    active: values.active === "on",
-    variants,
-  });
-  return { ok: true, product, loadedStock };
+const RESERVED_SLUGS = new Set(["new"]);
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+export function slugify(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60)
+    .replace(/-+$/, "");
+}
+
+export function emptyProductValues(categorySlug = ""): FormValues {
+  const values: FormValues = {
+    name: "",
+    slug: "",
+    categorySlug,
+    origin: "",
+    region: "",
+    process: "",
+    roastLevel: "3",
+    tastingNotes: "",
+    description: "",
+    bagColor: "#8a5a44",
+    featured: "",
+    active: "on",
+  };
+  for (const shape of ALL_VARIANT_SHAPES) {
+    values[priceField(shape.id)] = "";
+    values[stockField(shape.id)] = "0";
+  }
+  return values;
+}
+
+export type ParsedNewProductForm =
+  { ok: true; product: Product } | { ok: false; fieldErrors: FieldErrors };
+
+export function parseNewProductForm(
+  values: FormValues,
+  categorySlugs: Set<string>,
+): ParsedNewProductForm {
+  const { fieldErrors, fields } = parseShared(values, ALL_VARIANT_SHAPES, categorySlugs);
+
+  const slug = (values.slug ?? "").trim();
+  if (!SLUG_PATTERN.test(slug) || slug.length < 3 || slug.length > 60) {
+    fieldErrors.slug = "Use 3–60 lowercase letters, numbers and single hyphens.";
+  } else if (RESERVED_SLUGS.has(slug)) {
+    fieldErrors.slug = "That URL is reserved. Pick another.";
+  }
+
+  if (!fields || Object.keys(fieldErrors).length > 0) return { ok: false, fieldErrors };
+  return { ok: true, product: productSchema.parse({ slug, ...fields }) };
 }
 
 // Stock can change under an open form when an order is paid; saving then would undo that sale.

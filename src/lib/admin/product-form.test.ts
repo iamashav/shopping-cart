@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { makeProduct, makeVariant } from "@/test/fixtures";
 import {
+  ALL_VARIANT_SHAPES,
   LOADED_STOCK_FIELD,
+  emptyProductValues,
+  parseNewProductForm,
   parseProductForm,
   priceField,
   productToValues,
+  slugify,
   stockConflicts,
   stockField,
+  type FormValues,
 } from "./product-form";
 
 const current = makeProduct({
@@ -109,5 +114,70 @@ describe("stockConflicts", () => {
     expect(stockConflicts({ "250g-whole-bean": 30, "1kg-espresso": 0 }, afterOrder)).toEqual([
       "250g-whole-bean",
     ]);
+  });
+});
+
+describe("slugify", () => {
+  it("makes URL-safe names without accents or stray hyphens", () => {
+    expect(slugify("Tarrazú Honey")).toBe("tarrazu-honey");
+    expect(slugify("  Brazil & Ethiopia -- Blend! ")).toBe("brazil-and-ethiopia-blend");
+    expect(slugify("Ñandú  #2")).toBe("nandu-2");
+  });
+});
+
+describe("parseNewProductForm", () => {
+  const filled = () => {
+    const values: FormValues = {
+      ...emptyProductValues("blends"),
+      name: "Autumn Ember",
+      slug: "autumn-ember",
+      origin: "Peru",
+      region: "Cajamarca",
+      process: "Washed",
+      roastLevel: "4",
+      tastingNotes: "Toffee, Fig",
+      description: "A cosy seasonal blend.",
+    };
+    for (const shape of ALL_VARIANT_SHAPES) {
+      values[priceField(shape.id)] = shape.size === "1kg" ? "52" : "16.5";
+      values[stockField(shape.id)] = "12";
+    }
+    return values;
+  };
+
+  it("builds every size and grind variant with derived ids", () => {
+    const result = parseNewProductForm(filled(), categories);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.product.slug).toBe("autumn-ember");
+    expect(result.product.variants).toHaveLength(6);
+    expect(result.product.variants[0]).toEqual({
+      id: "250g-whole-bean",
+      size: "250g",
+      grind: "whole-bean",
+      priceCents: 1650,
+      stock: 12,
+    });
+    expect(result.product.active).toBe(true);
+    expect(result.product.featured).toBe(false);
+  });
+
+  it("requires a valid, non-reserved slug and prices for every variant", () => {
+    const bad = { ...filled(), slug: "Autumn Ember!" };
+    expect(parseNewProductForm(bad, categories)).toMatchObject({
+      ok: false,
+      fieldErrors: { slug: expect.stringContaining("lowercase") },
+    });
+
+    expect(parseNewProductForm({ ...filled(), slug: "new" }, categories)).toMatchObject({
+      ok: false,
+      fieldErrors: { slug: expect.stringContaining("reserved") },
+    });
+
+    const missingPrice = { ...filled(), [priceField("1kg-espresso")]: "" };
+    expect(parseNewProductForm(missingPrice, categories)).toMatchObject({
+      ok: false,
+      fieldErrors: { [priceField("1kg-espresso")]: expect.any(String) },
+    });
   });
 });

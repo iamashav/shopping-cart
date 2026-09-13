@@ -1,21 +1,26 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import type { ProductFormState } from "@/app/admin/(protected)/products/actions";
 import { Button } from "@/components/ui/button";
 import {
+  ALL_VARIANT_SHAPES,
   LOADED_STOCK_FIELD,
   MAX_STOCK,
+  emptyProductValues,
   priceField,
   productToValues,
+  slugify,
   stockField,
 } from "@/lib/admin/product-form";
 import { GRIND_LABELS, type Category, type Product } from "@/lib/catalog/schema";
 import { cn } from "@/lib/utils";
 
 type ProductEditFormProps = {
-  product: Product;
+  // Without a product the form creates one: it adds a URL field and starts from empty values.
+  product?: Product;
   categories: Category[];
   action: (state: ProductFormState, formData: FormData) => Promise<ProductFormState>;
 };
@@ -26,18 +31,29 @@ const inputClass =
 const ROAST_LABELS = ["Light", "Light-medium", "Medium", "Medium-dark", "Dark"];
 
 export function ProductEditForm({ product, categories, action }: ProductEditFormProps) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(action, { status: "idle" });
+  const isCreate = !product;
 
   useEffect(() => {
-    if (state.status === "saved") toast.success(`${product.name} saved`);
-  }, [state, product.name]);
+    if (state.status === "saved" && product) toast.success(`${product.name} saved`);
+    if (state.status === "created") {
+      toast.success("Product created");
+      router.push(`/admin/products/${state.slug}`);
+    }
+  }, [state, product, router]);
 
   // React resets the form after every action. On failure, the submitted values are shown again
   // so nothing typed is lost; after a save, the refreshed product is the source of truth.
-  const values =
-    state.status === "idle" || state.status === "saved" ? productToValues(product) : state.values;
+  const hasSubmittedValues = "values" in state;
+  const values = hasSubmittedValues
+    ? state.values
+    : product
+      ? productToValues(product)
+      : emptyProductValues(categories[0]?.slug);
   const errors = state.status === "invalid" ? state.fieldErrors : {};
-  const formKey = state.status === "saved" ? `saved-${state.savedAt}` : "editing";
+  const formKey = state.status === "idle" ? "idle" : `${state.status}-${state.at}`;
+  const variantShapes = product?.variants ?? ALL_VARIANT_SHAPES;
 
   const field = (name: string) => ({
     name,
@@ -48,7 +64,9 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
 
   return (
     <form key={formKey} action={formAction} className="space-y-8">
-      <input type="hidden" name={LOADED_STOCK_FIELD} defaultValue={values[LOADED_STOCK_FIELD]} />
+      {!isCreate && (
+        <input type="hidden" name={LOADED_STOCK_FIELD} defaultValue={values[LOADED_STOCK_FIELD]} />
+      )}
 
       {(state.status === "conflict" || state.status === "error" || errors.form) && (
         <div
@@ -66,7 +84,11 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
 
       <section className="grid gap-4 rounded-xl border bg-card p-6 sm:grid-cols-2">
         <h2 className="text-lg font-semibold sm:col-span-2">Details</h2>
-        <TextField label="Name" error={errors.name} {...field("name")} />
+        {isCreate ? (
+          <NameAndSlugFields values={values} errors={errors} />
+        ) : (
+          <TextField label="Name" error={errors.name} {...field("name")} />
+        )}
         <label className="block text-sm font-medium">
           Category
           <select {...field("categorySlug")} className={cn(inputClass, "h-10")}>
@@ -142,7 +164,7 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
               </tr>
             </thead>
             <tbody className="divide-y">
-              {product.variants.map((variant) => {
+              {variantShapes.map((variant) => {
                 const label = `${variant.size} ${GRIND_LABELS[variant.grind]}`;
                 return (
                   <tr key={variant.id}>
@@ -184,7 +206,7 @@ export function ProductEditForm({ product, categories, action }: ProductEditForm
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isPending} className="h-10 px-6">
-          {isPending ? "Saving…" : "Save changes"}
+          {isPending ? "Saving…" : isCreate ? "Create product" : "Save changes"}
         </Button>
         {state.status === "invalid" && (
           <p className="text-sm text-destructive">Fix the highlighted fields and save again.</p>
@@ -245,5 +267,52 @@ function Checkbox({
         {hint && <span className="block text-muted-foreground">{hint}</span>}
       </span>
     </label>
+  );
+}
+
+function NameAndSlugFields({
+  values,
+  errors,
+}: {
+  values: Record<string, string>;
+  errors: Record<string, string>;
+}) {
+  const [name, setName] = useState(values.name ?? "");
+  const [slug, setSlug] = useState(values.slug ?? "");
+  const [slugEdited, setSlugEdited] = useState(Boolean(values.slug));
+
+  return (
+    <>
+      <label className="block text-sm font-medium">
+        Name
+        <input
+          name="name"
+          value={name}
+          onChange={(event) => {
+            setName(event.target.value);
+            if (!slugEdited) setSlug(slugify(event.target.value));
+          }}
+          aria-invalid={errors.name ? true : undefined}
+          className={cn(inputClass, "h-10")}
+        />
+        <FieldError id="name-error" message={errors.name} />
+      </label>
+      <label className="block text-sm font-medium">
+        URL
+        <span className="ml-2 font-normal text-muted-foreground">/shop/{slug || "…"}</span>
+        <input
+          name="slug"
+          value={slug}
+          onChange={(event) => {
+            setSlugEdited(true);
+            setSlug(event.target.value);
+          }}
+          aria-invalid={errors.slug ? true : undefined}
+          aria-describedby={errors.slug ? "slug-error" : undefined}
+          className={cn(inputClass, "h-10 font-mono")}
+        />
+        <FieldError id="slug-error" message={errors.slug} />
+      </label>
+    </>
   );
 }
