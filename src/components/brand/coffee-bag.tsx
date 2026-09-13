@@ -4,7 +4,7 @@ import { BloomMarkPaths } from "./bloom-mark";
 type CoffeeBagProps = SVGProps<SVGSVGElement> & {
   name: string;
   origin: string;
-  roast: 1 | 2 | 3 | 4 | 5;
+  roast: number;
   bagColor: string;
   labelColor?: string;
   inkColor?: string;
@@ -80,6 +80,7 @@ export function CoffeeBag({
         fill={inkColor}
         opacity="0.65"
         style={{ fontFamily: "var(--font-sans)" }}
+        {...(origin.length > 20 && { textLength: 90, lengthAdjust: "spacingAndGlyphs" })}
       >
         {origin}
       </text>

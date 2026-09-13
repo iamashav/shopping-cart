@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { FlameIcon, SproutIcon, TruckIcon } from "lucide-react";
 import { CoffeeBag } from "@/components/brand/coffee-bag";
+import { ProductCard } from "@/components/catalog/product-card";
 import { buttonVariants } from "@/components/ui/button";
+import { getProducts } from "@/lib/catalog/queries";
 import { cn } from "@/lib/utils";
 
 const PROCESS = [
   {
     icon: SproutIcon,
-    title: "Sourced from single farms",
-    body: "Every roast traces back to one farm or co-op, with the producer named on the bag.",
+    title: "Traceable sourcing",
+    body: "Every roast traces back to the farms and co-ops that grew it, named on the bag.",
   },
   {
     icon: FlameIcon,
@@ -22,7 +24,9 @@ const PROCESS = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featured = (await getProducts()).filter((product) => product.featured);
+
   return (
     <>
       <section className="grid items-center gap-8 py-8 md:grid-cols-2 md:gap-12 md:py-16">
@@ -71,6 +75,20 @@ export default function HomePage() {
             bagColor="#8fa587"
             className="absolute right-0 bottom-0 w-32 rotate-6 drop-shadow-xl md:w-40"
           />
+        </div>
+      </section>
+
+      <section className="py-16">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="text-3xl font-semibold">This week&apos;s roasts</h2>
+          <Link href="/shop" className="text-sm font-medium text-brand hover:underline">
+            View all
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.map((product) => (
+            <ProductCard key={product.slug} product={product} />
+          ))}
         </div>
       </section>
 
