@@ -4,7 +4,7 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 
 **Live site:** https://bloomcoffee-shop.netlify.app
 
-> Work in progress. Catalog, filters, cart, Stripe checkout (test mode), order records and stock tracking are live; an admin area is being built.
+> Work in progress. Catalog, filters, cart, Stripe checkout (test mode), order records, stock tracking and an admin dashboard are live; product and order management are being built.
 
 ## Tech stack
 
@@ -15,6 +15,7 @@ Bloom is a fictional specialty coffee roaster: a full-stack shop where you brows
 - **Zustand** for the cart, persisted to localStorage
 - **Vitest** for unit tests
 - **Stripe Checkout** (test mode) with server-side re-pricing, and a signed webhook that records orders and decrements stock in a Firestore transaction
+- **Firebase Auth** (Google sign-in) for the admin area, with server-verified session cookies and an email allowlist
 - **Netlify** for hosting
 
 ## Getting started
