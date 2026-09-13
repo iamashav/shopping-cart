@@ -71,17 +71,20 @@ test("saving is blocked when an order changed stock in the meantime", async ({ p
   expect(stockOf(stored, "250g-whole-bean")).toBe(wholeBeanBefore - 1);
 });
 
+// Exact label matches: the Category select's accessible name includes its options ("Single origin").
 async function fillNewProduct(page: Page, name: string) {
   await page.goto("/admin/products/new");
   await expect(page.getByRole("heading", { name: "New product" })).toBeVisible();
-  await page.getByLabel("Name").fill(name);
-  await page.getByLabel("Category").selectOption("single-origin");
-  await page.getByLabel("Origin").fill("Peru");
-  await page.getByLabel("Region").fill("Cajamarca");
-  await page.getByLabel("Process").fill("Washed");
-  await page.getByLabel("Roast level").selectOption("1");
-  await page.getByLabel("Tasting notes").fill("Toffee, Fig");
-  await page.getByLabel("Description").fill("A test coffee created by the e2e suite.");
+  await page.getByLabel("Name", { exact: true }).fill(name);
+  await page.getByLabel("Category", { exact: true }).selectOption("single-origin");
+  await page.getByLabel("Origin", { exact: true }).fill("Peru");
+  await page.getByLabel("Region", { exact: true }).fill("Cajamarca");
+  await page.getByLabel("Process", { exact: true }).fill("Washed");
+  await page.getByLabel("Roast level", { exact: true }).selectOption("1");
+  await page.getByLabel("Tasting notes", { exact: true }).fill("Toffee, Fig");
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("A test coffee created by the e2e suite.");
   for (const grind of ["Whole bean", "Filter", "Espresso"]) {
     await page.getByLabel(`Price for 250g ${grind}`).fill("16.50");
     await page.getByLabel(`Price for 1kg ${grind}`).fill("52");
